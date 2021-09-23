@@ -5,6 +5,6 @@ export class HelloResolver {
   // uppercase in graphql
   @Query(() => String)
   hello() {
-    return "wudup world"
+    return "wudup SWAG"
   }
 }
