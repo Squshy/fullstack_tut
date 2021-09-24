@@ -2,6 +2,7 @@ import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import { MikroORM } from "@mikro-orm/core";
 import path from 'path';
+import { User } from "./entities/User";
 
 // point of this config file is to access types from CLI
 
@@ -10,7 +11,7 @@ export default {
     path: path.join(__dirname, "./migrations"),
     pattern: /^[\w-]+\d+\.[tj]s$/
   },
-  entities: [Post],
+  entities: [Post, User],
   dbName: "lireddit",
   type: "postgresql",
   debug: !__prod__,
