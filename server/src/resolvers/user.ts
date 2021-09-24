@@ -7,11 +7,10 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from "type-graphql";
 import argon2 from "argon2";
-
-
 
 // Object types we return, input types we use for arguments
 
@@ -44,10 +43,20 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: MyContext): Promise<User | null> {
+    // you are not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+    const user = await em.findOne(User, { _id: req.session.userId });
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     if (options.username.length <= 2) {
       return {
@@ -92,6 +101,9 @@ export class UserResolver {
       }
       console.error("message:", err);
     }
+
+    req.session.userId = user._id;
+
     return { user };
   }
 
