@@ -1571,11 +1571,18 @@
   dependencies:
     "@types/node" "*"
 
-"@urql/core@^2.3.2":
+"@urql/core@>=2.3.3", "@urql/core@^2.3.2":
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/@urql/core/-/core-2.3.3.tgz#e4777b95c31d8ad0ba21ea1f5c851cbbe1d0ac17"
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.0"
+    wonka "^4.0.14"
+
+"@urql/exchange-graphcache@^4.3.5":
+  version "4.3.5"
+  resolved "https://registry.yarnpkg.com/@urql/exchange-graphcache/-/exchange-graphcache-4.3.5.tgz#27727cd1c5ba5d23c98aa43eea86c609e81afc2a"
+  dependencies:
+    "@urql/core" ">=2.3.3"
     wonka "^4.0.14"
 
 abort-controller@3.0.0:
