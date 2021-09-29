@@ -12,6 +12,7 @@ import {
 } from "type-graphql";
 import argon2 from "argon2";
 import { EntityManager } from "@mikro-orm/postgresql";
+import { COOKIE_NAME } from "../constants";
 
 // Object types we return, input types we use for arguments
 
@@ -146,5 +147,20 @@ export class UserResolver {
     req.session.userId = user._id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+        res.clearCookie(COOKIE_NAME);
+        resolve(true);
+      })
+    );
   }
 }

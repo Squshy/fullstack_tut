@@ -7,7 +7,8 @@ import { Button } from "@chakra-ui/button";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/dist/client/router";
-
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
@@ -16,15 +17,15 @@ const Login: React.FC<{}> = ({}) => {
     <Wrapper variant="small">
       <Formik
         initialValues={{ username: "", password: "" }}
-        onSubmit={async (values, {setErrors}) => {
+        onSubmit={async (values, { setErrors }) => {
           console.log(values);
-          const response = await login({options: values});
-          console.log(response)
-          if(response.data?.login.errors) {
-            setErrors(toErrorMap(response.data.login.errors))
+          const response = await login({ options: values });
+          console.log(response);
+          if (response.data?.login.errors) {
+            setErrors(toErrorMap(response.data.login.errors));
           } else if (response.data?.login.user) {
             // worked
-            router.push('/')
+            router.push("/");
           }
         }}
       >
@@ -58,4 +59,4 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-export default Login;
+export default withUrqlClient(createUrqlClient, { ssr: false })(Login);
