@@ -1,4 +1,5 @@
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import { validatePassword } from "./validatePassword";
 
 export const validateRegister = (options: UsernamePasswordInput) => {
   if (!options.email.includes("@")) {
@@ -25,14 +26,8 @@ export const validateRegister = (options: UsernamePasswordInput) => {
       },
     ];
   }
-  if (options.password.length <= 2) {
-    return [
-      {
-        field: "password",
-        message: "length must be greater than 2",
-      },
-    ];
-  }
+  const validPass = validatePassword(options.password);
+  if (validPass) return validPass;
 
   return null;
 };
