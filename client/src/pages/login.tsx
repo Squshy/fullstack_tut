@@ -2,13 +2,15 @@ import React from "react";
 import { Formik, Form } from "formik";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputField";
-import { Box } from "@chakra-ui/layout";
+import { Box, Flex } from "@chakra-ui/layout";
 import { Button } from "@chakra-ui/button";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/dist/client/router";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import { Link } from "@chakra-ui/react";
+import NextLink from "next/link";
 
 const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
@@ -44,14 +46,16 @@ const Login: React.FC<{}> = ({}) => {
                 type="password"
               />
             </Box>
-            <Button
-              mt={4}
-              colorScheme="teal"
-              type="submit"
-              isLoading={isSubmitting}
-            >
-              Login
-            </Button>
+            <Flex mt={4} justifyContent="space-between" width="100%">
+              <Button colorScheme="teal" type="submit" isLoading={isSubmitting}>
+                Login
+              </Button>
+              <Flex alignSelf="center">
+                <NextLink href="/forgot-password">
+                  <Link ml="auto">Forgot Password?</Link>
+                </NextLink>
+              </Flex>
+            </Flex>
           </Form>
         )}
       </Formik>

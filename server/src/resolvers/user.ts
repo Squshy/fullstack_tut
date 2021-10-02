@@ -42,12 +42,13 @@ export class UserResolver {
   async changePassword(
     @Arg("token") token: string,
     @Arg("password") password: string,
-    @Ctx() { redis, em }: MyContext
+    @Ctx() { redis, em, req }: MyContext
   ): Promise<UserResponse> {
     const validPass = validatePassword(password);
     if (validPass) return { errors: validPass };
 
-    const userId = await redis.get(FORGET_PASSWORD_PREFIX + token);
+    const key = FORGET_PASSWORD_PREFIX + token;
+    const userId = await redis.get(key);
     if (!userId)
       return {
         errors: [
@@ -73,6 +74,12 @@ export class UserResolver {
 
     user.password = await argon2.hash(password);
     await em.persistAndFlush(user);
+
+    redis.del(key);
+
+    // login user after change password
+    req.session.userId = user._id;
+
     return { user };
   }
 
