@@ -17,6 +17,7 @@ import { validateRegister } from "../utils/validateRegister";
 import { sendEmail } from "../utils/sendEmail";
 import { v4 } from "uuid";
 import { validatePassword } from "../utils/validatePassword";
+import { getConnection } from "typeorm";
 
 @ObjectType()
 class FieldError {
@@ -42,7 +43,7 @@ export class UserResolver {
   async changePassword(
     @Arg("token") token: string,
     @Arg("password") password: string,
-    @Ctx() { redis, em, req }: MyContext
+    @Ctx() { redis, req }: MyContext
   ): Promise<UserResponse> {
     const validPass = validatePassword(password);
     if (validPass) return { errors: validPass };
@@ -59,7 +60,8 @@ export class UserResolver {
         ],
       };
 
-    const user = await em.findOne(User, { _id: parseInt(userId) });
+    const userIdNum = parseInt(userId);
+    const user = await User.findOne(userIdNum);
 
     if (!user) {
       return {
@@ -72,8 +74,10 @@ export class UserResolver {
       };
     }
 
-    user.password = await argon2.hash(password);
-    await em.persistAndFlush(user);
+    await User.update(
+      { _id: userIdNum },
+      { password: await argon2.hash(password) }
+    );
 
     redis.del(key);
 
@@ -86,9 +90,9 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg("email") email: string,
-    @Ctx() { em, redis }: MyContext
+    @Ctx() { redis }: MyContext
   ) {
-    const user = await em.findOne(User, { email });
+    const user = await User.findOne({ where: { email: email } });
     if (!user) {
       // email not in DB
       return true;
@@ -112,19 +116,18 @@ export class UserResolver {
   }
 
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { em, req }: MyContext): Promise<User | null> {
+  me(@Ctx() { req }: MyContext) {
     // you are not logged in
     if (!req.session.userId) {
       return null;
     }
-    const user = await em.findOne(User, { _id: req.session.userId });
-    return user;
+    return User.findOne(req.session.userId);
   }
 
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em, req }: MyContext
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
     const errors = validateRegister(options);
     if (errors) {
@@ -135,18 +138,19 @@ export class UserResolver {
     let user;
     try {
       console.log("TRYING");
-      const result = await (em as EntityManager)
-        .createQueryBuilder(User)
-        .getKnexQuery()
-        .insert({
+
+      const result = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(User)
+        .values({
           username: options.username,
           password: hashedPass,
           email: options.email,
-          created_at: new Date(),
-          updated_at: new Date(),
         })
-        .returning("*"); // return all fields
-      user = result[0];
+        .returning("*")
+        .execute();
+      user = result.raw;
       console.log("user:", user);
       // await em.persistAndFlush(user);
     } catch (err) {
@@ -174,13 +178,12 @@ export class UserResolver {
   async login(
     @Arg("usernameOrEmail") usernameOrEmail: string,
     @Arg("password") password: string,
-    @Ctx() { em, req }: MyContext
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    const user = await em.findOne(
-      User,
+    const user = await User.findOne(
       usernameOrEmail.includes("@")
-        ? { email: usernameOrEmail }
-        : { username: usernameOrEmail }
+        ? { where: { email: usernameOrEmail } }
+        : { where: { username: usernameOrEmail } }
     );
     if (!user) {
       return {
