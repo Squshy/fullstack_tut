@@ -9,7 +9,7 @@ import { Button } from "@chakra-ui/react";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 10,
+    limit: 15,
     cursor: null as null | string,
   });
   const [{ data, fetching }] = usePostsQuery({
@@ -37,6 +37,7 @@ const Index = () => {
             data.posts.posts.map((p) => (
               <Box p={5} shadow="md" borderWidth="1px" key={p._id}>
                 <Heading fontSize="xl">{p.title}</Heading>
+                <Text fontSize="xs">posted by {p.creator.username}</Text>
                 <Text mt={4}>{p.textSnippet}</Text>
               </Box>
             ))}
