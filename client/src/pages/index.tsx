@@ -5,7 +5,9 @@ import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from "next/link";
 import React, { useState } from "react";
-import { Button } from "@chakra-ui/react";
+import { Button, IconButton } from "@chakra-ui/react";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { UpdootSection } from "../components/UpdootSection";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -35,15 +37,18 @@ const Index = () => {
         <Stack spacing={8}>
           {data &&
             data.posts.posts.map((p) => (
-              <Box p={5} shadow="md" borderWidth="1px" key={p._id}>
-                <Heading fontSize="xl">{p.title}</Heading>
-                <Text fontSize="xs">posted by {p.creator.username}</Text>
-                <Text mt={4}>{p.textSnippet}</Text>
-              </Box>
+              <Flex p={5} shadow="md" borderWidth="1px" key={p._id}>
+                <UpdootSection post={p} />
+                <Box>
+                  <Heading fontSize="xl">{p.title}</Heading>
+                  <Text fontSize="xs">posted by {p.creator.username}</Text>
+                  <Text mt={4}>{p.textSnippet}</Text>
+                </Box>
+              </Flex>
             ))}
         </Stack>
       )}
-      {(data && data.posts.hasMore) && (
+      {data && data.posts.hasMore && (
         <Flex>
           <Button
             isLoading={fetching}
