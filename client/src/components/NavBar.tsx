@@ -10,7 +10,7 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({
     // if window is defined then we are in browser and not in server
-    pause: isServer() // not run on server
+    pause: isServer(), // not run on server
   });
   let body = null;
 
@@ -34,14 +34,20 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <Flex>
         <Box mr={2}>{data?.me?.username}</Box>
-        <Button variant="link" onClick={() => {logout();}} isLoading={logoutFetching}>
+        <Button
+          variant="link"
+          onClick={() => {
+            logout();
+          }}
+          isLoading={logoutFetching}
+        >
           Logout
         </Button>
       </Flex>
     );
   }
   return (
-    <Flex bg="tan" p={4}>
+    <Flex position="sticky" top={0} zIndex={25} bg="tan" p={4}>
       <Box ml="auto">{body}</Box>
     </Flex>
   );

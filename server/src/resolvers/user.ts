@@ -10,7 +10,6 @@ import {
   Resolver,
 } from "type-graphql";
 import argon2 from "argon2";
-import { EntityManager } from "@mikro-orm/postgresql";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
@@ -137,8 +136,7 @@ export class UserResolver {
     const hashedPass = await argon2.hash(options.password);
     let user;
     try {
-      console.log("TRYING");
-
+      // User.create({}).save();
       const result = await getConnection()
         .createQueryBuilder()
         .insert()
@@ -150,9 +148,7 @@ export class UserResolver {
         })
         .returning("*")
         .execute();
-      user = result.raw;
-      console.log("user:", user);
-      // await em.persistAndFlush(user);
+      user = result.raw[0];
     } catch (err) {
       if (err.code === "23505") {
         // duplicate username
@@ -167,8 +163,6 @@ export class UserResolver {
       }
       console.error("message:", err);
     }
-    console.log("DONE TRYING");
-
     req.session.userId = user._id;
 
     return { user };

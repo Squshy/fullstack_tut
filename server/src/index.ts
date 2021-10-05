@@ -11,20 +11,23 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import cors from "cors";
-import { createConnection } from 'typeorm';
+import { createConnection } from "typeorm";
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
+import path from "path";
 
 const main = async () => {
   const conn = await createConnection({
-    type: 'postgres',
-    database: 'lireddit2',
-    username: 'postgres',
-    password: 'postgres',
+    type: "postgres",
+    database: "lireddit2",
+    username: "postgres",
+    password: "postgres",
     logging: true,
     synchronize: true,
-    entities: [Post, User]
-  })
+    migrations: [path.join(__dirname, "./migrations/*")],
+    entities: [Post, User],
+  });
+  await conn.runMigrations();
 
   const app = express();
 
@@ -68,7 +71,7 @@ const main = async () => {
       }),
     ],
     // context object accesible by all resolvers
-    context: ({ req, res }) => ({  req, res, redis }),
+    context: ({ req, res }) => ({ req, res, redis }),
   });
 
   await apolloServer.start();
