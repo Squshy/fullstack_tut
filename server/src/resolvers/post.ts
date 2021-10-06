@@ -104,16 +104,21 @@ export class PostResolver {
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+    @Ctx() { req }: MyContext
   ): Promise<PaginatedPosts> {
     // cap at 50 if they try to give us more than 50
     const realLimit = Math.min(50, limit);
     const hasMoreLimit = realLimit + 1;
-
+    const userId = req.session.userId;
     const replacements: any[] = [hasMoreLimit];
 
+    if (userId) replacements.push(userId);
+
+    let cursorIndex = 3;
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
+      cursorIndex = replacements.length;
     }
 
     const posts = await getConnection().query(
@@ -123,10 +128,15 @@ export class PostResolver {
         '_id', u._id,
         'username', u.username,
         'email', u.email
-      ) creator      
+      ) creator,
+      ${
+        userId
+          ? '(select value from updoot where "userId" = $2 and "postId" = p._id) "voteStatus"'
+          : 'null as "voteStatus"'
+      }
       from post p
-      inner join "user" u on u._id = p."creatorId"
-      ${cursor ? `where p."createdAt" < $2` : ""}
+      inner join "user" u on u._id = p."creator_id"
+      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
     `,
@@ -140,8 +150,8 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id", () => Int) _id: number): Promise<Post | undefined> {
-    return Post.findOne(_id);
+  post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
+    return Post.findOne(id, { relations: ["creator"] });
   }
 
   @Mutation(() => Post)
@@ -150,7 +160,7 @@ export class PostResolver {
     @Arg("input") input: PostInput,
     @Ctx() { req }: MyContext
   ): Promise<Post> {
-    return Post.create({ ...input, creatorId: req.session.userId }).save();
+    return Post.create({ ...input, creator_id: req.session.userId }).save();
   }
 
   @Mutation(() => Post, { nullable: true })

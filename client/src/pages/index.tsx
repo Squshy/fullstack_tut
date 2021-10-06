@@ -5,8 +5,7 @@ import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from "next/link";
 import React, { useState } from "react";
-import { Button, IconButton } from "@chakra-ui/react";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { Button } from "@chakra-ui/react";
 import { UpdootSection } from "../components/UpdootSection";
 
 const Index = () => {
@@ -24,13 +23,6 @@ const Index = () => {
 
   return (
     <Layout>
-      <Flex align="center">
-        <Heading>LiReddit</Heading>
-        <NextLink href="/create-post">
-          <Link ml="auto">create post</Link>
-        </NextLink>
-      </Flex>
-      <br />
       {fetching && !data ? (
         <div>loading...</div>
       ) : (
@@ -40,7 +32,11 @@ const Index = () => {
               <Flex p={5} shadow="md" borderWidth="1px" key={p._id}>
                 <UpdootSection post={p} />
                 <Box>
-                  <Heading fontSize="xl">{p.title}</Heading>
+                  <NextLink href="/post/[id]" as={`/post/${p._id}`}>
+                    <Link>
+                      <Heading fontSize="xl">{p.title}</Heading>
+                    </Link>
+                  </NextLink>
                   <Text fontSize="xs">posted by {p.creator.username}</Text>
                   <Text mt={4}>{p.textSnippet}</Text>
                 </Box>
