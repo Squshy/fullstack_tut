@@ -17,6 +17,7 @@ import { MyContext } from "../types";
 import { isAuth } from "../middleware/isAuth";
 import { getConnection } from "typeorm";
 import { Updoot } from "../entities/Updoot";
+import { User } from "../entities/User";
 
 @InputType()
 class PostInput {
@@ -41,6 +42,25 @@ export class PostResolver {
     let message = root.text.slice(0, 50);
     if (root.text.length > 50) return message + "...";
     return message;
+  }
+
+  @FieldResolver(() => User)
+  creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creator_id);
+  }
+
+  @FieldResolver(() => Int, { nullable: true })
+  async voteStatus(
+    @Root() post: Post,
+    @Ctx() { updootLoader, req }: MyContext
+  ) {
+    const userId = req.session.userId;
+    if (!userId) return null;
+    const updoot = await updootLoader.load({
+      postId: post._id,
+      userId: userId,
+    });
+    return updoot ? updoot.value : null;
   }
 
   @Mutation(() => Boolean)
@@ -104,39 +124,22 @@ export class PostResolver {
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string,
-    @Ctx() { req }: MyContext
+    @Arg("cursor", () => String, { nullable: true }) cursor: string
   ): Promise<PaginatedPosts> {
     // cap at 50 if they try to give us more than 50
     const realLimit = Math.min(50, limit);
     const hasMoreLimit = realLimit + 1;
-    const userId = req.session.userId;
     const replacements: any[] = [hasMoreLimit];
 
-    if (userId) replacements.push(userId);
-
-    let cursorIndex = 3;
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
-      cursorIndex = replacements.length;
     }
 
     const posts = await getConnection().query(
       `
-      select p.*, 
-      json_build_object(
-        '_id', u._id,
-        'username', u.username,
-        'email', u.email
-      ) creator,
-      ${
-        userId
-          ? '(select value from updoot where "userId" = $2 and "postId" = p._id) "voteStatus"'
-          : 'null as "voteStatus"'
-      }
+      select p.*
       from post p
-      inner join "user" u on u._id = p."creator_id"
-      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
+      ${cursor ? `where p."createdAt" < $2` : ""}
       order by p."createdAt" DESC
       limit $1
     `,
@@ -151,7 +154,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true })
   post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
-    return Post.findOne(id, { relations: ["creator"] });
+    return Post.findOne(id);
   }
 
   @Mutation(() => Post)
@@ -164,19 +167,25 @@ export class PostResolver {
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") _id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("id", () => Int) _id: number,
+    @Arg("title", { nullable: true }) title: string,
+    @Arg("text", { nullable: true }) text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
-    const post = await Post.findOne(_id);
-    if (!post) {
-      return null;
-    }
-    if (typeof title !== "undefined") {
-      post.title = title;
-      Post.update({ _id }, { title });
-    }
-    return post;
+    const post = await getConnection()
+      .createQueryBuilder()
+      .update(Post)
+      .set({ title, text })
+      .where('_id = :_id and "creator_id" = :creator_id', {
+        _id,
+        creator_id: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+
+    return post.raw[0];
   }
 
   @Mutation(() => Boolean)
@@ -185,13 +194,16 @@ export class PostResolver {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<boolean> {
-    const post = await Post.findOne(id);
-    if (!post) return false;
-    if (post.creator_id !== req.session.userId) {
-      throw new Error("not authorized");
-    }
+    // NON CASCADING
+    // const post = await Post.findOne(id);
+    // if (!post) return false;
+    // if (post.creator_id !== req.session.userId) {
+    //   throw new Error("not authorized");
+    // }
 
-    await Updoot.delete({ postId: id });
+    // await Updoot.delete({ postId: id });
+    // await Post.delete({ _id: id, creator_id: req.session.userId });
+
     await Post.delete({ _id: id, creator_id: req.session.userId });
     return true;
   }

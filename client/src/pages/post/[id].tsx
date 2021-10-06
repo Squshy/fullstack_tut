@@ -1,22 +1,17 @@
 import { Box, Heading } from "@chakra-ui/layout";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
 import React from "react";
+import { EditDeletePostButtons } from "../../components/EditDeletePostButtons";
 import { Layout } from "../../components/Layout";
-import { usePostQuery } from "../../generated/graphql";
+import { useMeQuery } from "../../generated/graphql";
+import { useGetPostFromUrl } from "../../hooks/useGetPostFromUrl";
 import { createUrqlClient } from "../../utils/createUrqlClient";
 
 const Post: NextPage = ({}) => {
-  const router = useRouter();
-  const intId =
-    typeof router.query.id === "string" ? parseInt(router.query.id) : -1;
-  const [{ data, error, fetching }] = usePostQuery({
-    pause: intId === -1,
-    variables: {
-      id: intId,
-    },
-  });
+  const [{ data, fetching }] = useGetPostFromUrl();
+  const [{ data: meData }] = useMeQuery();
+
   if (fetching) {
     return <Layout>loading...</Layout>;
   }
@@ -32,7 +27,10 @@ const Post: NextPage = ({}) => {
   return (
     <Layout>
       <Heading mb={4}>{data?.post?.title}</Heading>
-      {data?.post?.text}
+      <Box mb={4}>{data.post.text}</Box>
+      {meData?.me?._id === data.post.creator._id && (
+        <EditDeletePostButtons id={data.post._id} />
+      )}
     </Layout>
   );
 };

@@ -21,6 +21,8 @@ const User_1 = require("./entities/User");
 const Post_1 = require("./entities/Post");
 const path_1 = __importDefault(require("path"));
 const Updoot_1 = require("./entities/Updoot");
+const createUserLoader_1 = require("./utils/createUserLoader");
+const createUpdootLoader_1 = require("./utils/createUpdootLoader");
 const main = async () => {
     const conn = await (0, typeorm_1.createConnection)({
         type: "postgres",
@@ -64,7 +66,13 @@ const main = async () => {
         plugins: [
             (0, apollo_server_core_1.ApolloServerPluginLandingPageGraphQLPlayground)({}),
         ],
-        context: ({ req, res }) => ({ req, res, redis }),
+        context: ({ req, res }) => ({
+            req,
+            res,
+            redis,
+            userLoader: (0, createUserLoader_1.createUserLoader)(),
+            updootLoader: (0, createUpdootLoader_1.createUpdootLoader)()
+        }),
     });
     await apolloServer.start();
     apolloServer.applyMiddleware({
