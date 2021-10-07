@@ -2,13 +2,15 @@ import React from "react";
 import { Formik, Form } from "formik";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputField";
-import { Box } from "@chakra-ui/layout";
+import { Box, Heading } from "@chakra-ui/layout";
 import { Button } from "@chakra-ui/button";
 import { useRegisterMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/dist/client/router";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import { Layout } from "../components/Layout";
+import { BoundingBox } from "../components/BoundingBox";
 
 interface registerProps {}
 
@@ -16,18 +18,18 @@ const Register: React.FC<registerProps> = ({}) => {
   const router = useRouter();
   const [, register] = useRegisterMutation();
   return (
-    <Wrapper variant="small">
+    <BoundingBox title="Register">
       <Formik
         initialValues={{ email: "", username: "", password: "" }}
-        onSubmit={async (values, {setErrors}) => {
+        onSubmit={async (values, { setErrors }) => {
           console.log(values);
-          const response = await register({options: values});
-          console.log(response)
-          if(response.data?.register.errors) {
-            setErrors(toErrorMap(response.data.register.errors))
+          const response = await register({ options: values });
+          console.log(response);
+          if (response.data?.register.errors) {
+            setErrors(toErrorMap(response.data.register.errors));
           } else if (response.data?.register.user) {
             // worked
-            router.push('/')
+            router.push("/");
           }
         }}
       >
@@ -56,7 +58,9 @@ const Register: React.FC<registerProps> = ({}) => {
             </Box>
             <Button
               mt={4}
-              colorScheme="teal"
+              colorScheme="blue"
+              color="white"
+              w="100%"
               type="submit"
               isLoading={isSubmitting}
             >
@@ -65,8 +69,8 @@ const Register: React.FC<registerProps> = ({}) => {
           </Form>
         )}
       </Formik>
-    </Wrapper>
+    </BoundingBox>
   );
 };
 
-export default  withUrqlClient(createUrqlClient)(Register);
+export default withUrqlClient(createUrqlClient)(Register);

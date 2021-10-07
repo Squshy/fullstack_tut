@@ -1,10 +1,10 @@
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Flex, IconButton } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { PostSnippetFragment, useVoteMutation } from "../generated/graphql";
+import {  SingularPostFragment, useVoteMutation } from "../generated/graphql";
 
 interface UpdootSectionProps {
-  post: PostSnippetFragment;
+  post: SingularPostFragment;
 }
 
 export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
@@ -23,26 +23,40 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
         onClick={async () => {
           if (post.voteStatus === 1) return;
           setLoadingState("updoot-loading");
-          vote({ postId: post._id, value: 1 });
+          await vote({ postId: post._id, value: 1 });
           setLoadingState("not-loading");
         }}
-        colorScheme={post.voteStatus === 1 ? `green` : undefined}
         isLoading={loadingState === "updoot-loading"}
         aria-label="updoot"
-        icon={<ChevronUpIcon w={6} h={6} />}
+        icon={
+          <ChevronUpIcon
+            w={6}
+            h={6}
+            color={post.voteStatus === 1 ? `green` : undefined}
+            _hover={{color: 'green.500'}}
+            transition="0.3s"
+          />
+        }
       />
       {post.points}
       <IconButton
         onClick={async () => {
           if (post.voteStatus === -1) return;
           setLoadingState("downdoot-loading");
-          vote({ postId: post._id, value: -1 });
+          await vote({ postId: post._id, value: -1 });
           setLoadingState("not-loading");
         }}
-        colorScheme={post.voteStatus === -1 ? `red` : undefined}
         isLoading={loadingState === "downdoot-loading"}
         aria-label="updoot"
-        icon={<ChevronDownIcon w={6} h={6} />}
+        icon={
+          <ChevronDownIcon
+            w={6}
+            h={6}
+            color={post.voteStatus === -1 ? `red` : undefined}
+            _hover={{color: 'red.500'}}
+            transition="0.3s"
+          />
+        }
       />
     </Flex>
   );

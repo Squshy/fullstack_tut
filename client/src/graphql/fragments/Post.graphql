@@ -1,0 +1,14 @@
+fragment SingularPost on Post {
+  _id
+  createdAt
+  updatedAt
+  title
+  text
+  voteStatus
+  textSnippet
+  points
+  creator {
+    _id
+    username
+  }
+}

@@ -143,6 +143,8 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
 };
 
+export type SingularPostFragment = { __typename?: 'Post', _id: number, createdAt: string, updatedAt: string, title: string, text: string, voteStatus?: Maybe<number>, textSnippet: string, points: number, creator: { __typename?: 'User', _id: number, username: string } };
+
 export type PostSnippetFragment = { __typename?: 'Post', _id: number, createdAt: string, updatedAt: string, title: string, textSnippet: string, voteStatus?: Maybe<number>, points: number, creator: { __typename?: 'User', _id: number, username: string } };
 
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
@@ -227,7 +229,7 @@ export type PostQueryVariables = Exact<{
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post?: Maybe<{ __typename?: 'Post', _id: number, createdAt: string, updatedAt: string, title: string, text: string, voteStatus?: Maybe<number>, points: number, creator: { __typename?: 'User', _id: number, username: string } }> };
+export type PostQuery = { __typename?: 'Query', post?: Maybe<{ __typename?: 'Post', _id: number, createdAt: string, updatedAt: string, title: string, text: string, voteStatus?: Maybe<number>, textSnippet: string, points: number, creator: { __typename?: 'User', _id: number, username: string } }> };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Int'];
@@ -237,6 +239,22 @@ export type PostsQueryVariables = Exact<{
 
 export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', _id: number, createdAt: string, updatedAt: string, title: string, textSnippet: string, voteStatus?: Maybe<number>, points: number, creator: { __typename?: 'User', _id: number, username: string } }> } };
 
+export const SingularPostFragmentDoc = gql`
+    fragment SingularPost on Post {
+  _id
+  createdAt
+  updatedAt
+  title
+  text
+  voteStatus
+  textSnippet
+  points
+  creator {
+    _id
+    username
+  }
+}
+    `;
 export const PostSnippetFragmentDoc = gql`
     fragment PostSnippet on Post {
   _id
@@ -387,20 +405,10 @@ export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'q
 export const PostDocument = gql`
     query Post($id: Int!) {
   post(id: $id) {
-    _id
-    createdAt
-    updatedAt
-    title
-    text
-    voteStatus
-    points
-    creator {
-      _id
-      username
-    }
+    ...SingularPost
   }
 }
-    `;
+    ${SingularPostFragmentDoc}`;
 
 export function usePostQuery(options: Omit<Urql.UseQueryArgs<PostQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<PostQuery>({ query: PostDocument, ...options });

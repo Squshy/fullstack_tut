@@ -28,25 +28,38 @@ const Index = () => {
       {fetching && !data ? (
         <div>loading...</div>
       ) : (
-        <Stack spacing={8}>
+        <Stack spacing={8} px={{ base: 4, md: 0 }}>
           {data &&
             data.posts.posts.map(
               (p) =>
                 p && (
-                  <Flex p={5} shadow="md" borderWidth="1px" key={p._id}>
+                  <Flex
+                    p={5}
+                    shadow="md"
+                    borderWidth="1px"
+                    bg="white"
+                    key={p._id}
+                  >
                     <UpdootSection post={p} />
                     <Box w="100%">
                       <Flex w="100%">
-                        <NextLink href="/post/[id]" as={`/post/${p._id}`}>
-                          <Link>
-                            <Heading fontSize="xl">{p.title}</Heading>
-                          </Link>
-                        </NextLink>
+                        <Flex flexDir="column">
+                          <NextLink href="/post/[id]" as={`/post/${p._id}`}>
+                            <Link>
+                              <Heading fontSize="xl" as="h2">
+                                {p.title}
+                              </Heading>
+                            </Link>
+                          </NextLink>
+
+                          <Text fontSize="xs">
+                            posted by {p.creator.username}
+                          </Text>
+                        </Flex>
                         {meData?.me?._id === p.creator._id && (
                           <EditDeletePostButtons id={p._id} />
                         )}
                       </Flex>
-                      <Text fontSize="xs">posted by {p.creator.username}</Text>
                       <Text mt={4}>{p.textSnippet}</Text>
                     </Box>
                   </Flex>

@@ -19,13 +19,17 @@ export const EditDeletePostButtons: React.FC<EditDeletePostButtonsProps> = ({
         <IconButton
           as={Link}
           aria-label="edit post"
-          icon={<EditIcon color="gray" />}
+          variant="outline"
+          colorScheme="blue"
+          icon={<EditIcon transition="0.1s" />}
           mr={2}
         />
       </NextLink>
       <IconButton
         aria-label="delete post"
-        icon={<DeleteIcon color="gray" />}
+        colorScheme="red"
+        variant="outline"
+        icon={<DeleteIcon />}
         onClick={() => deletePost({ id: id })}
       />
     </Flex>

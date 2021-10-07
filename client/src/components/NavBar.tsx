@@ -1,9 +1,20 @@
-import { Box, Button, Flex, Heading, Link } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+} from "@chakra-ui/react";
 import React from "react";
 import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { useRouter } from "next/router";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 
 interface NavBarProps {}
 
@@ -24,10 +35,12 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <>
         <NextLink href="/login">
-          <Link mr={2}>Login</Link>
+          <Button as={Link} mr={2}>
+            Login
+          </Button>
         </NextLink>
         <NextLink href="/register">
-          <Link>Register</Link>
+          <Button as={Link}>Register</Button>
         </NextLink>
       </>
     );
@@ -36,31 +49,47 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <Flex align="center">
         <NextLink href="/create-post">
-          <Button as={Link} mr={4}>
-            create post
-          </Button>
+          <Button aria-label="create post">create post</Button>
         </NextLink>
-        <Box mr={2}>{data?.me?.username}</Box>
-        <Button
-          variant="link"
-          onClick={async () => {
-            await logout();
-            router.reload();
-          }}
-          isLoading={logoutFetching}
-        >
-          Logout
-        </Button>
+        <Menu colorScheme="teal">
+          <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+            {data?.me?.username}
+          </MenuButton>
+          <MenuList bg="white" p={0}>
+            <MenuItem
+              onClick={async () => {
+                await logout();
+                router.reload();
+              }}
+              isLoading={logoutFetching}
+              fontWeight="semibold"
+              _focus={{ bg: "gray.50" }}
+              p={4}
+            >
+              Logout
+            </MenuItem>
+          </MenuList>
+        </Menu>
       </Flex>
     );
   }
   return (
-    <Flex position="sticky" top={0} zIndex={25} bg="tan" p={4} align="center">
+    <Flex
+      position="sticky"
+      top={0}
+      zIndex={25}
+      borderBottom="1px"
+      bg="white"
+      shadow="sm"
+      borderColor="gray.200"
+      p={4}
+      align="center"
+    >
       <Flex align="center" flex={1} m="auto" maxW={800}>
         <NextLink href="/">
-          <Link>
+          <Button>
             <Heading>LiReddit</Heading>
-          </Link>
+          </Button>
         </NextLink>
         <Box ml="auto">{body}</Box>
       </Flex>
