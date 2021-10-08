@@ -120,7 +120,7 @@ export class UserResolver {
 
     sendEmail(
       email,
-      `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
+      `<a href="lireddit.cavlinlapp.ca/change-password/${token}">Reset Password</a>`
     );
 
     return true;
